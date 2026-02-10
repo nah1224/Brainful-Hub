@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brainful Hub - Student Login</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.login-card {
+  background: #fff;
+  padding: 40px 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+.login-card img { width: 120px; margin-bottom: 20px; }
+.login-card h2 { color: #333; margin-bottom: 25px; }
+.login-card input {
+  width: 100%;
+  padding: 12px 15px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+.login-card button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #6a11cb;
+  color: #fff;
+  font-size: 18px;
+  margin-top: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.login-card button:hover { background: #2575fc; }
+.login-card p { margin-top: 15px; font-size: 14px; color: #555; }
+.login-card a { color: #2575fc; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="login-card">
+  <img src="mylogo.jpg" alt="Brainful Hub Logo">
+  <h2>Student Login</h2>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Sign In</button>
+  <p id="msg"></p>
+  <p>Don't have an account? <a href="#" onclick="requestAccess()">Request Access</a></p>
+</div>
+
+<script type="module">
+import { auth, db } from './firebase.js';
+import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+window.login = async function() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  try {
+    const userCred = await signInWithEmailAndPassword(auth, email, password);
+    const userDoc = await getDoc(doc(db, "users", userCred.user.uid));
+    if(userDoc.exists() && userDoc.data().approved){
+      window.location.href = "dashboard.html";
+    } else {
+      await signOut(auth);
+      document.getElementById("msg").innerText = "Your account is not approved yet.";
+    }
+  } catch(err) {
+    document.getElementById("msg").innerText = err.message;
+  }
+}
+
+window.requestAccess = async function(){
+  const name = prompt("Enter your full name:");
+  const email = prompt("Enter your email:");
+  const stream = prompt("Enter your stream (Natural/Social):");
+  if(!name || !email || !stream){ alert("All fields are required!"); return; }
+  
+  try {
+    await addDoc(collection(db, "accessRequests"), {
+      name, email, stream, status: "pending", timestamp: new Date().toISOString()
+    });
+    alert("Your request has been submitted. Admin will approve soon!");
+  } catch(err){
+    alert("Error submitting request: "+err.message);
+  }
+}
+</script>
+</body>
+</html>

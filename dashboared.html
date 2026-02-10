@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brainful Hub - Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { margin: 0; font-family: 'Poppins', sans-serif; background: #f2f6ff; }
+nav { background: #6a11cb; color: #fff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+nav h1 { margin: 0; font-size: 24px; }
+nav ul { list-style: none; display: flex; margin: 0; padding: 0; }
+nav ul li { margin-left: 20px; }
+nav ul li a { color: #fff; text-decoration: none; font-weight: 500; transition: 0.3s; }
+nav ul li a:hover { color: #ffdd59; }
+.container { padding: 30px; max-width: 600px; margin: auto; }
+button { padding: 12px 20px; background: #6a11cb; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.3s; }
+button:hover { background: #2575fc; }
+select { padding: 10px 12px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; width: 100%; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <h1>Brainful Hub</h1>
+  <ul>
+    <li><a href="#" onclick="startExam()">Exams</a></li>
+    <li><a href="leaderboard.html">Leaderboard</a></li>
+    <li><a href="#" onclick="contactUs()">Contact Us</a></li>
+    <li><a href="#" onclick="logout()">Logout</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+  <h2>Welcome!</h2>
+  <p>Select your stream to start exams:</p>
+  <select id="stream">
+    <option value="Natural">Natural</option>
+    <option value="Social">Social</option>
+  </select>
+  <button onclick="startExam()">Start Exam</button>
+</div>
+
+<script type="module">
+import { auth } from './firebase.js';
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+onAuthStateChanged(auth, user => {
+  if(!user) window.location.href="index.html";
+});
+
+window.startExam = () => {
+  localStorage.setItem('stream', document.getElementById('stream').value);
+  window.location.href = "exam.html";
+}
+
+window.logout = async () => {
+  await signOut(auth);
+  window.location.href = "index.html";
+}
+
+window.contactUs = () => {
+  alert("Contact Us\nTelegram: Henok_0\nEmail: henokdesta67@gmail.com");
+}
+</script>
+</body>
+</html>

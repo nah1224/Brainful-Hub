@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brainful Hub - Admin</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { margin:0; font-family:'Poppins',sans-serif; background:#f2f6ff; }
+nav { background:#6a11cb; color:#fff; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; }
+nav h1 { margin:0; font-size:24px; }
+nav ul { list-style:none; display:flex; margin:0; padding:0; }
+nav ul li { margin-left:20px; }
+nav ul li a { color:#fff; text-decoration:none; font-weight:500; transition:0.3s; }
+nav ul li a:hover { color:#ffdd59; }
+.admin-card { background:#fff; padding:30px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.2); width:90%; max-width:700px; margin:30px auto; }
+.admin-card h2 { color:#333; margin-bottom:20px; }
+.admin-card input, .admin-card select { width:100%; padding:10px 12px; margin:10px 0; border-radius:10px; border:1px solid #ccc; font-size:15px; }
+.admin-card button { padding:12px 20px; border:none; border-radius:10px; background:#6a11cb; color:#fff; font-size:16px; cursor:pointer; margin-top:10px; transition:0.3s; }
+.admin-card button:hover { background:#2575fc; }
+</style>
+</head>
+<body>
+
+<nav>
+  <h1>Brainful Hub - Admin</h1>
+  <ul>
+    <li><a href="#" onclick="logout()">Logout</a></li>
+  </ul>
+</nav>
+
+<div class="admin-card">
+  <h2>Admin Login</h2>
+  <input id="adminEmail" type="email" placeholder="Admin Email">
+  <input id="adminPass" type="password" placeholder="Password">
+  <button onclick="adminLogin()">Sign In</button>
+  <p id="adminMsg"></p>
+</div>
+
+<div class="admin-card" id="adminPanel" style="display:none;">
+  <h2>Manage Students</h2>
+  <input id="stuName" placeholder="Student Name">
+  <input id="stuEmail" placeholder="Student Email">
+  <select id="stuStream">
+    <option value="Natural">Natural</option>
+    <option value="Social">Social</option>
+  </select>
+  <button onclick="addStudent()">Add Student</button>
+
+  <h2 style="margin-top:30px;">Manage Exams</h2>
+  <button onclick="createExam()">Create Exam</button>
+</div>
+
+<script type="module">
+import { auth, db } from './firebase.js';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Admin login
+window.adminLogin = async function(){
+  const email = document.getElementById("adminEmail").value;
+  const pass = document.getElementById("adminPass").value;
+  try {
+    const userCred = await signInWithEmailAndPassword(auth,email,pass);
+    const userDoc = await getDoc(doc(db,"users",userCred.user.uid));
+    if(userDoc.exists() && userDoc.data().role === 'admin'){
+      document.getElementById("adminPanel").style.display="block";
+    } else {
+      alert("Not authorized"); await signOut(auth);
+    }
+  } catch(err){ document.getElementById("adminMsg").innerText = err.message; }
+}
+
+// Add student
+window.addStudent = async function(){
+  const name = document.getElementById("stuName").value;
+  const email = document.getElementById("stuEmail").value;
+  const stream = document.getElementById("stuStream").value;
+  const password = Math.random().toString(36).slice(-8);
+  try{
+    const userCred = await createUserWithEmailAndPassword(auth,email,password);
+    await setDoc(doc(db,"users",userCred.user.uid),{name,email,stream,approved:true,role:'student'});
+    alert(`Student added. Temporary password: ${password}`);
+  } catch(err){ alert(err.message); }
+}
+
+window.logout = async () => { await signOut(auth); window.location.href="index.html"; }
+window.createExam = () => { window.location.href="createExam.html"; }
+</script>
+</body>
+</html>

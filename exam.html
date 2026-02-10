@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brainful Hub - Exam</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { margin:0; font-family:'Poppins',sans-serif; background:#f2f6ff; }
+.container { max-width:600px; margin:40px auto; background:#fff; padding:30px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.2); }
+h2 { color:#333; }
+button { padding:12px 20px; background:#6a11cb; color:#fff; border:none; border-radius:10px; cursor:pointer; font-size:16px; margin-top:10px; transition:0.3s; }
+button:hover { background:#2575fc; }
+ul { list-style:none; padding:0; }
+li { margin:10px 0; }
+input[type=radio] { margin-right:10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2 id="questionTitle">Loading...</h2>
+  <ul id="optionsList"></ul>
+  <button onclick="nextQuestion()">Next</button>
+  <p id="timer"></p>
+</div>
+
+<script type="module">
+import { auth, db } from './firebase.js';
+import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+let questions = [];
+let current = 0;
+let score = 0;
+let reviewMode = 'afterExam'; // or 'afterEach'
+
+onAuthStateChanged(auth, user => { if(!user) window.location.href="index.html"; });
+
+async function loadQuestions(){
+  const stream = localStorage.getItem('stream') || 'Natural';
+  const qSnap = await getDocs(query(collection(db,'exams'), where('stream','==',stream)));
+  questions = qSnap.docs.map(d=>d.data());
+  showQuestion();
+}
+function showQuestion(){
+  if(current>=questions.length){ finishExam(); return; }
+  const q = questions[current];
+  document.getElementById('questionTitle').innerText = q.question;
+  const ul = document.getElementById('optionsList'); ul.innerHTML='';
+  q.options.forEach((opt,i)=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<label><input type="radio" name="option" value="${i}"> ${opt}</label>`;
+    ul.appendChild(li);
+  });
+}
+window.nextQuestion = () => {
+  const opts = document.getElementsByName('option');
+  let selected = -1;
+  opts.forEach(o=>{ if(o.checked) selected=parseInt(o.value); });
+  if(selected===-1){ alert("Select an option"); return; }
+  if(selected===questions[current].answer) score++;
+  current++;
+  showQuestion();
+}
+function finishExam(){
+  alert(`Exam finished! Your score: ${score}/${questions.length}`);
+  window.location.href="review.html";
+}
+loadQuestions();
+</script>
+</body>
+</html>

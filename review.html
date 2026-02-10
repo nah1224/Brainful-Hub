@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brainful Hub - Review</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { margin:0; font-family:'Poppins',sans-serif; background:#f2f6ff; }
+.container { max-width:600px; margin:40px auto; background:#fff; padding:30px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.2); }
+h2 { color:#333; }
+ul { list-style:none; padding:0; }
+li { margin:10px 0; }
+.correct { color:green; font-weight:bold; }
+.wrong { color:red; font-weight:bold; }
+button { padding:12px 20px; background:#6a11cb; color:#fff; border:none; border-radius:10px; cursor:pointer; font-size:16px; margin-top:10px; transition:0.3s; }
+button:hover { background:#2575fc; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Exam Review</h2>
+  <ul id="reviewList"></ul>
+  <button onclick="backDashboard()">Back to Dashboard</button>
+</div>
+
+<script>
+const questions = JSON.parse(localStorage.getItem('questions')||'[]');
+const answers = JSON.parse(localStorage.getItem('answers')||'[]');
+const reviewList = document.getElementById('reviewList');
+
+questions.forEach((q,i)=>{
+  const li = document.createElement('li');
+  const correctIndex = q.answer;
+  const studentIndex = answers[i];
+  li.innerHTML = `
+    <p><strong>Q${i+1}:</strong> ${q.question}</p>
+    <p>Your answer: <span class="${studentIndex===correctIndex?'correct':'wrong'}">${q.options[studentIndex]||'No answer'}</span></p>
+    <p>Correct answer: <span class="correct">${q.options[correctIndex]}</span></p>
+    <hr>
+  `;
+  reviewList.appendChild(li);
+});
+
+function backDashboard(){ window.location.href="dashboard.html"; }
+</script>
+</body>
+</html>
